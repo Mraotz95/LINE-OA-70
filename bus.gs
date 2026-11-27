@@ -99,6 +99,21 @@ function buildBusModel_() {
     });
   });
 
+  // สายที่ระบุจุดว่า "บึงกาฬ" = ตัวเมือง/สถานีขนส่ง: ให้ถือว่าตรงกับ "บขส.บึงกาฬ" ด้วย
+  // (ไม่งั้นระบบมองว่าสายผ่านบึงกาฬไม่ผ่าน บขส. จึงแนะนำต่อรถโดยไม่จำเป็น)
+  const STATION_KEYS = nameKeys_({
+    name: 'บขส.บึงกาฬ',
+    aliases: ['บขส บึงกาฬ', 'สถานีขนส่งบึงกาฬ', 'สถานีขนส่งผู้โดยสารบึงกาฬ', 'สถานีขนส่งผู้โดยสารจังหวัดบึงกาฬ', 'สถานีขนส่งจังหวัดบึงกาฬ']
+  });
+  const CITY_KEY = normalizeForMatch_('บึงกาฬ');
+  routes.forEach(function (r) {
+    r.seq.forEach(function (s) {
+      if (s.key === CITY_KEY) {
+        STATION_KEYS.forEach(function (k) { if (s.keys.indexOf(k) === -1) s.keys.push(k); });
+      }
+    });
+  });
+
   // จุดที่ผู้ใช้อาจพิมพ์ถึง: สถานที่ + จุดในชีต Stops + ชื่อจุดที่รถผ่าน
   const known = [];
   const seen = {};
@@ -898,7 +913,10 @@ function finishBusTrip_(userId, requestText, origin, replyToken) {
             ride: rideLeg_(op.second.route, op.second.boardIdx, op.second.alightIdx) },
           transferWalkKm: op.transferWalkKm };
       });
-      legs.push({ from: from.name, to: to.name, result: plan.kind, roadBetweenPoints: roadBetween_(from, to), options: opts });
+      const roadInfo = roadBetween_(from, to);
+      const leg = { from: from.name, to: to.name, result: plan.kind, roadBetweenPoints: roadInfo, options: opts };
+      if (!roadInfo) leg.distanceNote = 'ไม่มีพิกัดของจุดนี้ในระบบ จึงไม่ทราบระยะทาง ห้ามระบุระยะทางของช่วงนี้';
+      legs.push(leg);
       // สายอื่นที่ผ่านใกล้ต้นทาง/ปลายทาง (ที่ยังไม่ได้แนะนำ) เรียงตามความถี่ — โค้ดสร้างเอง ไม่ส่งให้ Gemini
       const excl = {};
       plan.options.forEach(function (op) {
