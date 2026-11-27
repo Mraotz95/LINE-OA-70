@@ -287,7 +287,7 @@ function routeStatus_(r) {
   const re = /ไม่มี(?:รถ|เที่ยว)?(?:ออก)?จาก\s*([ก-๙A-Za-z0-9.]+)/g;
   let m;
   while ((m = re.exec(note)) !== null) noDepartFrom.push(m[1]);
-  const unavailable = /(หยุดให้บริการ|หยุดเดินรถ|ยกเลิก|งดเดินรถ|งดให้บริการ|ระงับ|ปิดเส้นทาง|ไม่เปิดให้บริการ|ไม่ให้บริการ|ไม่มีรถวิ่ง|ไม่มีรถให้บริการ)/.test(note);
+  const unavailable = /(หยุดให้บริการ|หยุดเดินรถ|ยกเลิก|งดเดินรถ|งดให้บริการ|ระงับ|ปิดเส้นทาง|ไม่เปิดให้บริการ|ไม่ให้บริการ|ไม่มีรถวว*ิ่ง|ไม่มีรถให้บริการ)/.test(note);
   r._st = { unavailable: unavailable, noDepartFrom: noDepartFrom, flagged: unavailable || noDepartFrom.length > 0, note: note };
   return r._st;
 }
