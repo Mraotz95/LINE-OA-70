@@ -66,7 +66,7 @@ function nameKeys_(o) {
       });
     }
     let s = raw.replace(/^(กิ่งอำเภอ|จังหวัด|อำเภอ|ตำบล|เขต|จ\.|อ\.|ต\.)\s*/, '');
-    const cut = s.replace(/\s*จังหวัด.*$/, '');
+    const cut = s.replace(/\s+จังหวัด.*$/, ''); // ต้องมีช่องว่างนำหน้า ไม่งั้น "สถานีขนส่งผู้โดยสารจังหวัดบึงกาฬ" จะถูกตัดเหลือคีย์กว้างเกินไป
     if (cut) s = cut;
     const k = normalizeForMatch_(s);
     if (k.length >= 3) add(k);

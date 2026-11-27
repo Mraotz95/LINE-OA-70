@@ -29,7 +29,27 @@ const TRAVEL_KEYWORDS = [
 
 /* ---------- อ่านชีต ---------- */
 
+/** แคชผลอ่านชีตสั้นๆ (วินาที) ลดการอ่านชีตซ้ำทุกข้อความ; แก้ชีตแล้วมีผลภายใน SHEET_CACHE_SEC วินาที */
+const SHEET_CACHE_SEC = 60;
+function cachedSheetData_(key, loader) {
+  const cache = CacheService.getScriptCache();
+  try {
+    const c = cache.get('sc_' + key);
+    if (c) return JSON.parse(c);
+  } catch (e) { /* ignore */ }
+  const data = loader();
+  try {
+    const json = JSON.stringify(data);
+    if (json.length < 90000) cache.put('sc_' + key, json, SHEET_CACHE_SEC); // เกิน 100KB ต่อคีย์ใส่แคชไม่ได้ -> อ่านชีตสดทุกครั้งเหมือนเดิม
+  } catch (e) { /* ignore */ }
+  return data;
+}
+
 function readSheetRows_(name, cols) {
+  return cachedSheetData_('rows_' + name + '_' + cols, function () { return readSheetRowsRaw_(name, cols); });
+}
+
+function readSheetRowsRaw_(name, cols) {
   const sheet = getSpreadsheet_().getSheetByName(name);
   if (!sheet || sheet.getLastRow() < 2) return [];
   const real = Math.min(cols, sheet.getMaxColumns()); // ชีตที่มีคอลัมน์น้อยกว่าที่ขอ (เช่นยังไม่มีคอลัมน์ M) ไม่ให้ error

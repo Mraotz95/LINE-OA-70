@@ -20,6 +20,10 @@ function getFaqSheet_() {
  * @return {Array<{keywords: string[], question: string, answer: string, category: string}>}
  */
 function getAllFaq_() {
+  return cachedSheetData_('faq', getAllFaqRaw_);
+}
+
+function getAllFaqRaw_() {
   const sheet = getFaqSheet_();
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
@@ -51,6 +55,10 @@ function getMenuSkipSheet_() {
  * @return {string[]}
  */
 function getMenuSkipTexts_() {
+  return cachedSheetData_('menuskip', getMenuSkipTextsRaw_);
+}
+
+function getMenuSkipTextsRaw_() {
   const sheet = getMenuSkipSheet_();
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];

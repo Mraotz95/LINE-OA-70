@@ -46,9 +46,17 @@ function safeHandleEvent_(event) {
       redelivery: !!(event && event.deliveryContext && event.deliveryContext.isRedelivery)
     };
     if (EVENT_META_.redelivery || (EVENT_META_.delaySec !== null && EVENT_META_.delaySec > STALE_EVENT_SEC)) {
-      logInteraction_((event.source && event.source.userId) || '',
-        (event.message && event.message.text) || (event.postback && event.postback.data) || event.type,
-        'SkippedStale', '(ข้าม: อีเวนต์ส่งซ้ำ/มาถึงช้า ' + EVENT_META_.delaySec + ' วิ redelivery=' + EVENT_META_.redelivery + ' reply token หมดอายุแล้ว)', null);
+      // ไม่เขียน Log ทีละอีเวนต์ (เคยมีอีเวนต์ซ้ำเป็นร้อย ทำให้ doPost ช้าจน LINE ส่งซ้ำอีก) -> บันทึกสรุปไม่เกิน 1 แถวต่อ 5 นาที
+      let first = true;
+      try {
+        const cache = CacheService.getScriptCache();
+        if (cache.get('stale_logged')) first = false; else cache.put('stale_logged', '1', 300);
+      } catch (eC) { /* ignore */ }
+      if (first) {
+        logInteraction_((event.source && event.source.userId) || '',
+          (event.message && event.message.text) || (event.postback && event.postback.data) || event.type,
+          'SkippedStale', '(ข้าม: อีเวนต์ส่งซ้ำ/มาถึงช้า ' + EVENT_META_.delaySec + ' วิ redelivery=' + EVENT_META_.redelivery + ' reply token หมดอายุแล้ว; ช่วง 5 นาทีนี้จะไม่บันทึกอีเวนต์ที่ข้ามซ้ำอีก)', null);
+      }
       return;
     }
     if (isDuplicateEvent_(event)) return;
