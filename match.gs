@@ -85,6 +85,19 @@ function findFaqAnswer_(userText, faqList) {
   return {
     answer: selected.map(s => s.item.answer).join('\n\n'),
     question: selected.map(s => s.item.question).join(' / '),
-    score: 1
+    score: 1,
+    longest: Math.max.apply(null, selected.map(s => s.info.longest)) // ความยาว keyword ที่ตรงยาวสุด (ใช้เทียบความเจาะจงกับการ์ด)
   };
+}
+
+/**
+ * FAQ เจาะจงกว่าการ์ด/ชุดภาพที่ router.gs เลือกหรือไม่?
+ *  - ข้อความตรงกับ trigger ทั้งคำ (score >= 1000 เช่นกดปุ่มเมนู) -> การ์ดชนะเสมอ
+ *  - นอกนั้นเทียบความยาวคำที่ตรง: ถ้า keyword ของ FAQ ยาวกว่า trigger ของการ์ด -> FAQ ชนะ
+ *  - ยาวเท่ากัน -> การ์ดชนะ
+ */
+function faqBeatsTopic_(topicMatch, userText, faqList) {
+  if (!topicMatch || topicMatch.score >= 1000) return false;
+  const faq = findFaqAnswer_(userText, faqList);
+  return !!(faq && faq.longest > topicMatch.score);
 }
